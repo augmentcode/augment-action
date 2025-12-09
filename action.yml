@@ -15,6 +15,19 @@ inputs:
   event_name:
     description: 'The GitHub event name (pull_request_review_comment or issue_comment)'
     required: true
+  prompt:
+    description: 'The prompt to send to Auggie agent'
+    required: true
+  augment_api_token:
+    description: 'Augment API token for authentication'
+    required: false
+  augment_api_url:
+    description: 'Augment API URL'
+    required: false
+    default: 'https://api.augmentcode.com'
+  workspace_root:
+    description: 'Workspace root path for Auggie to index (defaults to current directory)'
+    required: false
 
 outputs:
   success:
@@ -29,6 +42,10 @@ runs:
       with:
         bun-version: latest
 
+    - name: Install Auggie CLI
+      run: bun install -g @augmentcode/auggie
+      shell: bash
+
     - name: Install Action Dependencies
       run: bun install --production
       shell: bash
@@ -42,5 +59,9 @@ runs:
         INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
         INPUT_COMMENT_ID: ${{ inputs.comment_id }}
         INPUT_EVENT_NAME: ${{ inputs.event_name }}
+        INPUT_PROMPT: ${{ inputs.prompt }}
+        INPUT_AUGMENT_API_TOKEN: ${{ inputs.augment_api_token }}
+        INPUT_AUGMENT_API_URL: ${{ inputs.augment_api_url }}
+        INPUT_WORKSPACE_ROOT: ${{ inputs.workspace_root }}
         GITHUB_REPOSITORY: ${{ github.repository }}
 
