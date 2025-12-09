@@ -18,8 +18,8 @@ inputs:
   prompt:
     description: 'The prompt to send to Auggie agent'
     required: true
-  augment_api_token:
-    description: 'Augment API token for authentication'
+  augment_api_key:
+    description: 'Augment API key for authentication'
     required: false
   augment_api_url:
     description: 'Augment API URL'
@@ -60,7 +60,7 @@ runs:
         INPUT_COMMENT_ID: ${{ inputs.comment_id }}
         INPUT_EVENT_NAME: ${{ inputs.event_name }}
         INPUT_PROMPT: ${{ inputs.prompt }}
-        INPUT_AUGMENT_API_TOKEN: ${{ inputs.augment_api_token }}
+        INPUT_AUGMENT_API_KEY: ${{ inputs.augment_api_key }}
         INPUT_AUGMENT_API_URL: ${{ inputs.augment_api_url }}
         INPUT_WORKSPACE_ROOT: ${{ inputs.workspace_root }}
         GITHUB_REPOSITORY: ${{ github.repository }}

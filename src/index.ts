@@ -83,7 +83,7 @@ async function main(): Promise<void> {
     const commentIdStr = getInput("comment_id", true);
     const eventName = getInput("event_name", true);
     const prompt = getInput("prompt", true);
-    const augmentApiToken = getInput("augment_api_token");
+    const augmentApiKey = getInput("augment_api_key");
     const augmentApiUrl = getInput("augment_api_url");
     const workspaceRoot = getInput("workspace_root");
 
@@ -105,7 +105,7 @@ async function main(): Promise<void> {
     core.info("🚀 Running Auggie agent...");
     const response = await runAuggie({
       prompt,
-      apiKey: augmentApiToken,
+      apiKey: augmentApiKey,
       apiUrl: augmentApiUrl,
       workspaceRoot: workspaceRoot || undefined,
     });
