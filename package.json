@@ -11,5 +11,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@actions/core": "^2.0.0",
+    "@octokit/rest": "^22.0.1"
   }
 }
