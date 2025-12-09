@@ -24,19 +24,19 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Node
-      uses: actions/setup-node@v4
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
       with:
-        node-version: 22
+        bun-version: latest
 
     - name: Install Action Dependencies
-      run: npm install --production
+      run: bun install --production
       shell: bash
       working-directory: ${{ github.action_path }}
 
     - name: React to comment
       id: react
-      run: npx tsx ${{ github.action_path }}/src/index.ts
+      run: bun run ${{ github.action_path }}/src/index.ts
       shell: bash
       env:
         INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
