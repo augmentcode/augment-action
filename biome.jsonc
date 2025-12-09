@@ -17,7 +17,7 @@
       },
       "performance": {
         "noBarrelFile": "warn",
-        "noNamespaceImport": "warn"
+        "noNamespaceImport": "off"
       }
     }
   }
