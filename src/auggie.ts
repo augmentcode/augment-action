@@ -9,13 +9,14 @@ export type RunAuggieOptions = {
   apiKey?: string;
   apiUrl?: string;
   workspaceRoot?: string;
+  githubToken?: string;
 };
 
 /**
  * Run Auggie agent with the given prompt and return the response
  */
 export async function runAuggie(options: RunAuggieOptions): Promise<string> {
-  const { prompt, apiKey, apiUrl, workspaceRoot } = options;
+  const { prompt, apiKey, apiUrl, workspaceRoot, githubToken } = options;
 
   const workspace = workspaceRoot || process.cwd();
 
@@ -25,6 +26,12 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
   let client: Auggie | null = null;
 
   try {
+    // Set GITHUB_API_TOKEN environment variable if provided
+    if (githubToken) {
+      process.env.GITHUB_API_TOKEN = githubToken;
+      core.info("✅ GITHUB_API_TOKEN environment variable set");
+    }
+
     // Create Auggie client
     client = await Auggie.create({
       model: "sonnet4.5",
@@ -34,7 +41,7 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
       allowIndexing: true,
     });
 
-    core.info(`📝 Sending prompt to Auggie: ${prompt}`);
+    core.info("📝 Sending prompt to Auggie...");
 
     // Send prompt and get response
     const response = await client.prompt(prompt, { isAnswerOnly: true });

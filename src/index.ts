@@ -108,6 +108,7 @@ async function main(): Promise<void> {
       apiKey: augmentApiKey,
       apiUrl: augmentApiUrl,
       workspaceRoot: workspaceRoot || undefined,
+      githubToken,
     });
 
     // Get issue number for posting the response
