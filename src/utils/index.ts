@@ -5,22 +5,24 @@ import type { Octokit } from "@octokit/rest";
 /**
  * Get input from environment variables (GitHub Actions pattern)
  */
-export function getInput(name: string, required = false): string {
+export function getInput(name: string, required: true): string;
+export function getInput(name: string, required?: false): string | undefined;
+export function getInput(name: string, required = false): string | undefined {
   const envName = `INPUT_${name.toUpperCase().replace(/ /g, "_")}`;
-  const value = process.env[envName] || "";
+  const value = process.env[envName];
 
   if (required && !value) {
     throw new Error(`Input required and not supplied: ${name}`);
   }
 
-  return value.trim();
+  return value?.trim() || undefined;
 }
 
 /**
- * Extract comment ID from GitHub event payload
- * Returns undefined if the event doesn't have a comment
+ * Read and parse GitHub event payload
+ * Returns undefined if the event payload cannot be read
  */
-export function getCommentIdFromEvent(): number | undefined {
+function getEventPayload(): Record<string, unknown> | undefined {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (!eventPath) {
     core.warning("GITHUB_EVENT_PATH not found");
@@ -28,18 +30,49 @@ export function getCommentIdFromEvent(): number | undefined {
   }
 
   try {
-    const eventData = JSON.parse(readFileSync(eventPath, "utf8"));
-
-    // Check if event has a comment object
-    if (eventData.comment?.id) {
-      return eventData.comment.id;
-    }
-
-    return undefined;
+    return JSON.parse(readFileSync(eventPath, "utf8"));
   } catch (error) {
     core.warning(`Failed to read event payload: ${error}`);
     return undefined;
   }
+}
+
+/**
+ * Extract comment ID from GitHub event payload
+ * Returns undefined if the event doesn't have a comment
+ */
+export function getCommentIdFromEvent(): number | undefined {
+  const eventData = getEventPayload();
+  if (!eventData) {
+    return undefined;
+  }
+
+  // Check if event has a comment object
+  const comment = eventData.comment as { id?: number } | undefined;
+  if (comment?.id) {
+    return comment.id;
+  }
+
+  return undefined;
+}
+
+/**
+ * Extract comment body from GitHub event payload
+ * Returns undefined if the event doesn't have a comment
+ */
+export function getCommentBodyFromEvent(): string | undefined {
+  const eventData = getEventPayload();
+  if (!eventData) {
+    return undefined;
+  }
+
+  // Check if event has a comment object with body
+  const comment = eventData.comment as { body?: string } | undefined;
+  if (comment?.body) {
+    return comment.body;
+  }
+
+  return undefined;
 }
 
 /**
@@ -62,23 +95,31 @@ type ReactToCommentParams = {
   octokit: Octokit;
   owner: string;
   repo: string;
-  commentId: number;
   eventName: string;
 };
 
 /**
  * React to a comment with an emoji
+ * Extracts comment ID from event payload and reacts if present
  */
 export async function reactToComment({
   octokit,
   owner,
   repo,
-  commentId,
   eventName,
 }: ReactToCommentParams): Promise<void> {
-  core.info(`🎯 Reacting to comment ${commentId} with :eyes:`);
-  core.info(`📦 Repository: ${owner}/${repo}`);
-  core.info(`📝 Event: ${eventName}`);
+  // Extract comment_id from GitHub event payload
+  const commentId = getCommentIdFromEvent();
+
+  // Only react if we have a comment ID
+  if (!commentId) {
+    core.info(
+      `ℹ️ No comment found in event payload, skipping comment reaction (event: ${eventName})`,
+    );
+    return;
+  }
+
+  core.info("👀 Reacting to comment");
 
   // React based on event type
   if (eventName === "pull_request_review_comment") {
@@ -102,48 +143,31 @@ export async function reactToComment({
   core.info(`✅ Successfully added :eyes: reaction to comment ${commentId}`);
 }
 
-type PostCommentParams = {
-  octokit: Octokit;
-  owner: string;
-  repo: string;
-  issueNumber: number;
-  body: string;
+type AuggieParams = {
+  githubToken: string;
   eventName: string;
+  prompt: string;
+  augmentApiKey: string;
+  augmentApiUrl: string;
+  workspaceRoot: string | undefined;
+  commentBody: string | undefined;
 };
 
-/**
- * Post a reply comment
- */
-export async function postComment({
-  octokit,
-  owner,
-  repo,
-  issueNumber,
-  body,
-  eventName,
-}: PostCommentParams): Promise<void> {
-  core.info("💬 Posting comment reply...");
-
-  // Post comment based on event type
-  if (eventName === "pull_request_review_comment") {
-    // For PR review comments, we need to post as a regular issue comment
-    // since we can't reply directly to review comments via API
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issueNumber,
-      body,
-    });
-  } else if (eventName === "issue_comment") {
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issueNumber,
-      body,
-    });
-  } else {
-    throw new Error(`Unsupported event type: ${eventName}`);
+export function getAuggieParams(): AuggieParams {
+  const githubToken = getInput("github_token", true);
+  const eventName = getInput("event_name", true);
+  const prompt = getInput("prompt", true);
+  const augmentApiKey = getInput("augment_api_key", true);
+  const augmentApiUrl = getInput("augment_api_url", true);
+  const workspaceRoot = getInput("workspace_root");
+  const commentBody = getCommentBodyFromEvent();
+  return {
+    githubToken,
+    eventName,
+    prompt,
+    augmentApiKey,
+    augmentApiUrl,
+    workspaceRoot,
+    commentBody,
   }
-
-  core.info("✅ Successfully posted comment");
 }

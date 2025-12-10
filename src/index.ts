@@ -3,8 +3,7 @@ import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { runAuggie } from "./auggie";
 import {
-	getCommentIdFromEvent,
-	getInput,
+	getAuggieParams,
 	parseRepository,
 	reactToComment,
 } from "./utils";
@@ -13,47 +12,29 @@ import {
  * Main function
  */
 async function main(): Promise<void> {
-	const githubToken = getInput("github_token", true);
-	const eventName = getInput("event_name", true);
-	const prompt = getInput("prompt", true);
-	const augmentApiKey = getInput("augment_api_key");
-	const augmentApiUrl = getInput("augment_api_url");
-	const workspaceRoot = getInput("workspace_root");
-
+	const {
+		githubToken,
+		eventName,
+		prompt,
+		augmentApiKey,
+		augmentApiUrl,
+		workspaceRoot,
+		commentBody,
+	} = getAuggieParams();
 	const { owner, repo } = parseRepository();
-
-	// Create Octokit instance
 	const octokit = new Octokit({ auth: githubToken });
 
-	// Extract comment_id from GitHub event payload
-	const commentId = getCommentIdFromEvent();
 
-	// React to the comment to acknowledge receipt (only for comment events)
-	if (commentId) {
-		core.info(`📝 Found comment ID ${commentId} from event payload`);
-		await reactToComment({ octokit, owner, repo, commentId, eventName });
-	} else {
-		core.info(
-			`ℹ️ No comment found in event payload, skipping comment reaction (event: ${eventName})`,
-		);
-	}
+	await reactToComment({ octokit, owner, repo, eventName });
 
-	// Log GITHUB_STEP_SUMMARY availability
-	const stepSummaryPath = process.env.GITHUB_STEP_SUMMARY;
-	if (stepSummaryPath) {
-		core.info(`📊 GITHUB_STEP_SUMMARY available at: ${stepSummaryPath}`);
-	} else {
-		core.warning("⚠️ GITHUB_STEP_SUMMARY not available");
-	}
-
-	// Run Auggie agent with the prompt
-	core.info("🚀 Running Auggie agent...");
+	core.info("Running Auggie agent...");
 	await runAuggie({
 		userPrompt: prompt,
 		apiKey: augmentApiKey,
 		apiUrl: augmentApiUrl,
 		workspaceRoot: workspaceRoot || undefined,
 		githubToken,
+		commentBody,
 	});
 
 	core.info("✅ Auggie agent completed successfully");

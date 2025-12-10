@@ -34,8 +34,12 @@ describe("getInput", () => {
     expect(getInput("test")).toBe("value");
   });
 
-  test("should return empty string for missing optional input", () => {
-    expect(getInput("missing_input", false)).toBe("");
+  test("should return undefined for missing optional input", () => {
+    expect(getInput("missing_input", false)).toBeUndefined();
+  });
+
+  test("should return undefined for missing input with no required parameter", () => {
+    expect(getInput("missing_input")).toBeUndefined();
   });
 
   test("should throw error for missing required input", () => {
@@ -44,9 +48,9 @@ describe("getInput", () => {
     );
   });
 
-  test("should not throw error for empty string when not required", () => {
+  test("should return undefined for empty string when not required", () => {
     process.env.INPUT_OPTIONAL = "";
-    expect(getInput("optional", false)).toBe("");
+    expect(getInput("optional", false)).toBeUndefined();
   });
 
   test("should throw error for empty string when required", () => {
