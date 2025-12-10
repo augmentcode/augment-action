@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import { readFileSync } from "node:fs";
 import type { Octokit } from "@octokit/rest";
 
 /**
@@ -13,6 +14,32 @@ export function getInput(name: string, required = false): string {
   }
 
   return value.trim();
+}
+
+/**
+ * Extract comment ID from GitHub event payload
+ * Returns undefined if the event doesn't have a comment
+ */
+export function getCommentIdFromEvent(): number | undefined {
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  if (!eventPath) {
+    core.warning("GITHUB_EVENT_PATH not found");
+    return undefined;
+  }
+
+  try {
+    const eventData = JSON.parse(readFileSync(eventPath, "utf8"));
+
+    // Check if event has a comment object
+    if (eventData.comment?.id) {
+      return eventData.comment.id;
+    }
+
+    return undefined;
+  } catch (error) {
+    core.warning(`Failed to read event payload: ${error}`);
+    return undefined;
+  }
 }
 
 /**
