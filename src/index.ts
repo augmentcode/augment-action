@@ -2,77 +2,7 @@
 import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { runAuggie } from "./auggie";
-import {
-  getInput,
-  parseRepository,
-  postComment,
-  reactToComment,
-} from "./utils";
-
-// Regex patterns for extracting issue/PR numbers from URLs
-const ISSUE_URL_PATTERN = /\/issues\/(\d+)$/;
-const PR_URL_PATTERN = /\/pulls\/(\d+)$/;
-
-type GetIssueNumberParams = {
-  octokit: Octokit;
-  owner: string;
-  repo: string;
-  commentId: number;
-  eventName: string;
-};
-
-/**
- * Get issue/PR number from the comment
- * For issue_comment events, we need to fetch the comment to get the issue number
- * For pull_request_review_comment events, we need to fetch the comment to get the PR number
- */
-async function getIssueNumber({
-  octokit,
-  owner,
-  repo,
-  commentId,
-  eventName,
-}: GetIssueNumberParams): Promise<number> {
-  if (eventName === "issue_comment") {
-    // Fetch the comment to get the issue URL
-    const { data: comment } = await octokit.rest.issues.getComment({
-      owner,
-      repo,
-      comment_id: commentId,
-    });
-
-    // Extract issue number from the issue URL
-    const issueUrlMatch = comment.issue_url.match(ISSUE_URL_PATTERN);
-    if (!issueUrlMatch?.[1]) {
-      throw new Error(
-        `Could not extract issue number from URL: ${comment.issue_url}`
-      );
-    }
-
-    return Number.parseInt(issueUrlMatch[1], 10);
-  }
-
-  if (eventName === "pull_request_review_comment") {
-    // Fetch the review comment to get the PR URL
-    const { data: comment } = await octokit.rest.pulls.getReviewComment({
-      owner,
-      repo,
-      comment_id: commentId,
-    });
-
-    // Extract PR number from the pull request URL
-    const prUrlMatch = comment.pull_request_url.match(PR_URL_PATTERN);
-    if (!prUrlMatch?.[1]) {
-      throw new Error(
-        `Could not extract PR number from URL: ${comment.pull_request_url}`
-      );
-    }
-
-    return Number.parseInt(prUrlMatch[1], 10);
-  }
-
-  throw new Error(`Unsupported event type: ${eventName}`);
-}
+import { getInput, parseRepository, reactToComment } from "./utils";
 
 /**
  * Main function
@@ -101,35 +31,25 @@ async function main(): Promise<void> {
     // React to the comment to acknowledge receipt
     await reactToComment({ octokit, owner, repo, commentId, eventName });
 
+    // Log GITHUB_STEP_SUMMARY availability
+    const stepSummaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (stepSummaryPath) {
+      core.info(`📊 GITHUB_STEP_SUMMARY available at: ${stepSummaryPath}`);
+    } else {
+      core.warning("⚠️ GITHUB_STEP_SUMMARY not available");
+    }
+
     // Run Auggie agent with the prompt
     core.info("🚀 Running Auggie agent...");
-    const response = await runAuggie({
-      prompt,
+    await runAuggie({
+      userPrompt: prompt,
       apiKey: augmentApiKey,
       apiUrl: augmentApiUrl,
       workspaceRoot: workspaceRoot || undefined,
       githubToken,
     });
 
-    // Get issue number for posting the response
-    const issueNumber = await getIssueNumber({
-      octokit,
-      owner,
-      repo,
-      commentId,
-      eventName,
-    });
-
-    // Post the response as a comment
-    await postComment({
-      octokit,
-      owner,
-      repo,
-      issueNumber,
-      body: response,
-      eventName,
-    });
-
+    core.info("✅ Auggie agent completed successfully");
     core.setOutput("success", "true");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

@@ -1,22 +1,26 @@
 import * as core from "@actions/core";
 import { Auggie } from "@augmentcode/auggie-sdk";
+import type { GithubPullRequest } from "./types";
+import { AGENT_SYSTEM_PROMPT, generateContextPrompt } from "./utils/prompt";
 
 /**
  * Options for running Auggie agent
  */
 export type RunAuggieOptions = {
-  prompt: string;
+  userPrompt: string;
   apiKey?: string;
   apiUrl?: string;
   workspaceRoot?: string;
   githubToken?: string;
+  context?: GithubPullRequest;
 };
 
 /**
  * Run Auggie agent with the given prompt and return the response
  */
 export async function runAuggie(options: RunAuggieOptions): Promise<string> {
-  const { prompt, apiKey, apiUrl, workspaceRoot, githubToken } = options;
+  const { userPrompt, apiKey, apiUrl, workspaceRoot, githubToken, context } =
+    options;
 
   const workspace = workspaceRoot || process.cwd();
 
@@ -41,10 +45,21 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
       allowIndexing: true,
     });
 
-    core.info("📝 Sending prompt to Auggie...");
+    core.info("📝 Running Auggie agent ...");
 
-    // Send prompt and get response
-    const response = await client.prompt(prompt, { isAnswerOnly: true });
+    // Build the full prompt by combining system prompt, context, and user prompt
+    let fullPrompt = AGENT_SYSTEM_PROMPT;
+
+    // Add context information if provided
+    if (context) {
+      const contextPrompt = generateContextPrompt(context);
+      fullPrompt = `${fullPrompt}\n\n${contextPrompt}`;
+    }
+
+    // Add user prompt
+    fullPrompt = `${fullPrompt}\n\n${userPrompt}`;
+
+    const response = await client.prompt(fullPrompt, { isAnswerOnly: true });
 
     core.info("✅ Auggie agent completed successfully");
 

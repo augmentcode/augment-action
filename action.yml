@@ -32,7 +32,7 @@ inputs:
 outputs:
   success:
     description: 'Whether the reaction was successfully added'
-    value: ${{ steps.react.outputs.success }}
+    value: ${{ steps.auggie.outputs.success }}
 
 runs:
   using: 'composite'
@@ -51,8 +51,8 @@ runs:
       shell: bash
       working-directory: ${{ github.action_path }}
 
-    - name: React to comment
-      id: react
+    - name: Run Auggie
+      id: auggie
       run: bun run ${{ github.action_path }}/src/index.ts
       shell: bash
       env:
@@ -64,4 +64,5 @@ runs:
         INPUT_AUGMENT_API_URL: ${{ inputs.augment_api_url }}
         INPUT_WORKSPACE_ROOT: ${{ inputs.workspace_root }}
         GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_STEP_SUMMARY: ${{ env.GITHUB_STEP_SUMMARY }}
 
