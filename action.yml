@@ -9,9 +9,6 @@ inputs:
   github_token:
     description: 'GitHub token for API access'
     required: true
-  event_name:
-    description: 'The GitHub event name (pull_request, pull_request_review_comment, or issue_comment)'
-    required: true
   prompt:
     description: 'The prompt to send to Auggie agent'
     required: true
@@ -54,11 +51,11 @@ runs:
       shell: bash
       env:
         INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
-        INPUT_EVENT_NAME: ${{ inputs.event_name }}
         INPUT_PROMPT: ${{ inputs.prompt }}
         INPUT_AUGMENT_API_KEY: ${{ inputs.augment_api_key }}
         INPUT_AUGMENT_API_URL: ${{ inputs.augment_api_url }}
         INPUT_WORKSPACE_ROOT: ${{ inputs.workspace_root }}
         GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
         GITHUB_STEP_SUMMARY: ${{ env.GITHUB_STEP_SUMMARY }}
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { getInput, parseRepository } from "./index";
+import { getInput, parseRepository, getEventName } from "./index";
 
 describe("getInput", () => {
   const originalEnv = process.env;
@@ -125,5 +125,48 @@ describe("parseRepository", () => {
     process.env.GITHUB_REPOSITORY = "owner/repo/extra";
     const result = parseRepository();
     expect(result).toEqual({ owner: "owner", repo: "repo" });
+  });
+});
+
+describe("getEventName", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    // Reset environment before each test
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    // Restore original environment after each test
+    process.env = originalEnv;
+  });
+
+  test("should get event name from GITHUB_EVENT_NAME", () => {
+    process.env.GITHUB_EVENT_NAME = "pull_request";
+    expect(getEventName()).toBe("pull_request");
+  });
+
+  test("should get workflow_run event name", () => {
+    process.env.GITHUB_EVENT_NAME = "workflow_run";
+    expect(getEventName()).toBe("workflow_run");
+  });
+
+  test("should get issue_comment event name", () => {
+    process.env.GITHUB_EVENT_NAME = "issue_comment";
+    expect(getEventName()).toBe("issue_comment");
+  });
+
+  test("should throw error when GITHUB_EVENT_NAME is not set", () => {
+    process.env.GITHUB_EVENT_NAME = undefined;
+    expect(() => getEventName()).toThrow(
+      "GITHUB_EVENT_NAME environment variable not found"
+    );
+  });
+
+  test("should throw error when GITHUB_EVENT_NAME is empty", () => {
+    process.env.GITHUB_EVENT_NAME = "";
+    expect(() => getEventName()).toThrow(
+      "GITHUB_EVENT_NAME environment variable not found"
+    );
   });
 });

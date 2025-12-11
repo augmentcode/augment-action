@@ -98,9 +98,22 @@ type ReactToCommentParams = {
   eventName: string;
 };
 
+// Event types that support comment reactions
+const COMMENT_EVENT_TYPES = [
+  "issue_comment",
+  "pull_request_review_comment",
+] as const;
+
+type CommentEventType = (typeof COMMENT_EVENT_TYPES)[number];
+
+function isCommentEvent(eventName: string): eventName is CommentEventType {
+  return COMMENT_EVENT_TYPES.includes(eventName as CommentEventType);
+}
+
 /**
  * React to a comment with an emoji
  * Extracts comment ID from event payload and reacts if present
+ * Gracefully skips for non-comment events (e.g., workflow_run, pull_request)
  */
 export async function reactToComment({
   octokit,
@@ -108,6 +121,14 @@ export async function reactToComment({
   repo,
   eventName,
 }: ReactToCommentParams): Promise<void> {
+  // Skip reaction for non-comment events
+  if (!isCommentEvent(eventName)) {
+    core.info(
+      `ℹ️ Event type '${eventName}' does not support comment reactions, skipping`,
+    );
+    return;
+  }
+
   // Extract comment_id from GitHub event payload
   const commentId = getCommentIdFromEvent();
 
@@ -136,8 +157,6 @@ export async function reactToComment({
       comment_id: commentId,
       content: "eyes",
     });
-  } else {
-    throw new Error(`Unsupported event type: ${eventName}`);
   }
 
   core.info(`✅ Successfully added :eyes: reaction to comment ${commentId}`);
@@ -153,9 +172,20 @@ type AuggieParams = {
   commentBody: string | undefined;
 };
 
+/**
+ * Get the GitHub event name from environment variable
+ */
+export function getEventName(): string {
+  const eventName = process.env.GITHUB_EVENT_NAME;
+  if (!eventName) {
+    throw new Error("GITHUB_EVENT_NAME environment variable not found");
+  }
+  return eventName;
+}
+
 export function getAuggieParams(): AuggieParams {
   const githubToken = getInput("github_token", true);
-  const eventName = getInput("event_name", true);
+  const eventName = getEventName();
   const prompt = getInput("prompt", true);
   const augmentApiKey = getInput("augment_api_key", true);
   const augmentApiUrl = getInput("augment_api_url", true);
