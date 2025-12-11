@@ -6,9 +6,6 @@ branding:
   color: 'purple'
 
 inputs:
-  github_token:
-    description: 'GitHub token for API access'
-    required: true
   prompt:
     description: 'The prompt to send to Auggie agent'
     required: true
@@ -50,7 +47,6 @@ runs:
       run: bun run ${{ github.action_path }}/src/index.ts
       shell: bash
       env:
-        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
         INPUT_PROMPT: ${{ inputs.prompt }}
         INPUT_AUGMENT_API_KEY: ${{ inputs.augment_api_key }}
         INPUT_AUGMENT_API_URL: ${{ inputs.augment_api_url }}

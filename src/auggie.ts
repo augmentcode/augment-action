@@ -11,7 +11,6 @@ export type RunAuggieOptions = {
   apiKey?: string;
   apiUrl?: string;
   workspaceRoot?: string;
-  githubToken?: string;
   context?: GithubPullRequest;
   /** The body of the comment that triggered this action, if triggered by a comment */
   commentBody?: string;
@@ -26,7 +25,6 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
     apiKey,
     apiUrl,
     workspaceRoot,
-    githubToken,
     context,
     commentBody,
   } = options;
@@ -39,10 +37,11 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
   let client: Auggie | null = null;
 
   try {
-    // Set GITHUB_API_TOKEN environment variable if provided
+    // Set GITHUB_API_TOKEN environment variable from GITHUB_TOKEN if available
+    const githubToken = process.env.GITHUB_TOKEN;
     if (githubToken) {
       process.env.GITHUB_API_TOKEN = githubToken;
-      core.info("✅ GITHUB_API_TOKEN environment variable set");
+      core.info("✅ GITHUB_API_TOKEN environment variable set from GITHUB_TOKEN");
     }
 
     // Create Auggie client

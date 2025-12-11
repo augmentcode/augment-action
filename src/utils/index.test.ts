@@ -15,8 +15,8 @@ describe("getInput", () => {
   });
 
   test("should get input from environment variable", () => {
-    process.env.INPUT_GITHUB_TOKEN = "test-token";
-    expect(getInput("github_token")).toBe("test-token");
+    process.env.INPUT_TEST_TOKEN = "test-token";
+    expect(getInput("test_token")).toBe("test-token");
   });
 
   test("should convert input name to uppercase with underscores", () => {

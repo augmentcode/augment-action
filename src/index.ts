@@ -13,7 +13,6 @@ import {
  */
 async function main(): Promise<void> {
 	const {
-		githubToken,
 		eventName,
 		prompt,
 		augmentApiKey,
@@ -22,6 +21,7 @@ async function main(): Promise<void> {
 		commentBody,
 	} = getAuggieParams();
 	const { owner, repo } = parseRepository();
+	const githubToken = process.env.GITHUB_TOKEN;
 	const octokit = new Octokit({ auth: githubToken });
 
 
@@ -33,7 +33,6 @@ async function main(): Promise<void> {
 		apiKey: augmentApiKey,
 		apiUrl: augmentApiUrl,
 		workspaceRoot: workspaceRoot || undefined,
-		githubToken,
 		commentBody,
 	});
 

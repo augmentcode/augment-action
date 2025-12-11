@@ -163,7 +163,6 @@ export async function reactToComment({
 }
 
 type AuggieParams = {
-  githubToken: string;
   eventName: string;
   prompt: string;
   augmentApiKey: string;
@@ -184,7 +183,6 @@ export function getEventName(): string {
 }
 
 export function getAuggieParams(): AuggieParams {
-  const githubToken = getInput("github_token", true);
   const eventName = getEventName();
   const prompt = getInput("prompt", true);
   const augmentApiKey = getInput("augment_api_key", true);
@@ -192,7 +190,6 @@ export function getAuggieParams(): AuggieParams {
   const workspaceRoot = getInput("workspace_root");
   const commentBody = getCommentBodyFromEvent();
   return {
-    githubToken,
     eventName,
     prompt,
     augmentApiKey,

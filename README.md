@@ -1,19 +1,8 @@
 # Augment Action
 
-A GitHub Action that automatically reacts to comments with an emoji (👀 eyes) when triggered. Perfect for bot interactions and automated comment acknowledgments.
-
-## Features
-
-- 🎯 Reacts to issue comments and pull request review comments
-- 👀 Adds an "eyes" emoji reaction to acknowledge the comment
-- 🤖 Can be triggered by specific keywords (e.g., `@auggiebot`)
-- ⚡ Fast and lightweight
+A GitHub Action that runs the Auggie AI agent to respond to issue and PR comments.
 
 ## Usage
-
-### Basic Setup
-
-Create a workflow file in your repository at `.github/workflows/auggie-bot.yml`:
 
 ```yaml
 name: Auggie Bot
@@ -25,129 +14,95 @@ on:
     types: [created]
 
 jobs:
-  react-to-comment:
+  auggie:
     runs-on: ubuntu-latest
-    if: contains(github.event.comment.body, '@auggiebot')
-
+    if: contains(github.event.comment.body, '@auggie')
     steps:
-      - name: Checkout augment-action
-        uses: actions/checkout@v4
-        with:
-          repository: augmentcode/augment-action
-          path: augment-action
+      - uses: actions/checkout@v4
 
-      - name: React with eyes emoji
-        uses: ./augment-action
+      - uses: augmentcode/augment-action@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          comment_id: ${{ github.event.comment.id }}
-          event_name: ${{ github.event_name }}
+          prompt: ${{ github.event.comment.body }}
+          augment_api_key: ${{ secrets.AUGMENT_API_KEY }}
 ```
 
-### Inputs
+## Inputs
 
 | Input | Description | Required |
 |-------|-------------|----------|
-| `github_token` | GitHub token for API access (use `${{ secrets.GITHUB_TOKEN }}`) | Yes |
-| `comment_id` | The ID of the comment to react to (use `${{ github.event.comment.id }}`) | Yes |
-| `event_name` | The GitHub event name: `issue_comment` or `pull_request_review_comment` (use `${{ github.event_name }}`) | Yes |
+| `prompt` | The prompt to send to the Auggie agent | Yes |
+| `augment_api_key` | Augment API key for authentication | No |
+| `augment_api_url` | Augment API URL (default: `https://api.augmentcode.com`) | No |
+| `workspace_root` | Workspace root path for Auggie to index | No |
 
-### Outputs
+## What It Does
 
-| Output | Description |
-|--------|-------------|
-| `success` | Whether the reaction was successfully added (`true` or `false`) |
+The Auggie agent will:
+1. React to your comment with 👀 to acknowledge the request
+2. Post a comment with its response
+3. Update the comment in real-time as it works through the task
 
-### Customization
+## Use Cases
 
-#### Trigger on Different Keywords
+### 1. Respond to Comments
 
-Change the `if` condition to trigger on different text:
+Trigger Auggie when someone mentions `@auggie` in a comment:
 
-```yaml
-if: contains(github.event.comment.body, '@mybot')
-```
-
-#### Trigger on All Comments
-
-Remove the `if` condition to react to all comments:
-
-```yaml
-jobs:
-  react-to-comment:
-    runs-on: ubuntu-latest
-    # No if condition - reacts to all comments
-    steps:
-      # ...
-```
-
-#### Only Trigger on Issues or PRs
-
-For issues only:
 ```yaml
 on:
   issue_comment:
     types: [created]
-```
-
-For PR review comments only:
-```yaml
-on:
   pull_request_review_comment:
     types: [created]
+
+jobs:
+  auggie:
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, '@auggie')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: augmentcode/augment-action@main
+        with:
+          prompt: ${{ github.event.comment.body }}
+          augment_api_key: ${{ secrets.AUGMENT_API_KEY }}
 ```
 
-## Development
+### 2. Auto Code Review on PRs
 
-### Prerequisites
+Automatically review every new pull request:
 
-- [Bun](https://bun.sh) v1.2.15 or later
+```yaml
+on:
+  pull_request:
+    types: [opened, synchronize]
 
-### Install Dependencies
-
-```bash
-bun install
+jobs:
+  auggie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: augmentcode/augment-action@main
+        with:
+          prompt: "Review this PR for bugs, security issues, and code quality"
+          augment_api_key: ${{ secrets.AUGMENT_API_KEY }}
 ```
 
-### Run Tests
+### 3. Triage New Issues
 
-```bash
-bun test
+Automatically analyze and label new issues:
+
+```yaml
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  auggie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: augmentcode/augment-action@main
+        with:
+          prompt: "Analyze this issue, suggest relevant labels, and provide initial guidance"
+          augment_api_key: ${{ secrets.AUGMENT_API_KEY }}
 ```
-
-### Type Check
-
-```bash
-bun run typecheck
-```
-
-### Run Locally
-
-```bash
-bun run index.ts
-```
-
-## How It Works
-
-1. The workflow is triggered when a comment is created on an issue or pull request
-2. If the comment contains the specified keyword (e.g., `@auggiebot`), the action runs
-3. The action uses the GitHub API to add a 👀 (eyes) reaction to the comment
-4. The action reports success or failure
-
-## Example
-
-When you comment on an issue or PR with:
-
-```
-@auggiebot please review this
-```
-
-The action will automatically add a 👀 reaction to your comment, indicating that the bot has seen it.
-
-## License
-
-See [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
