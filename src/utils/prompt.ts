@@ -24,9 +24,13 @@ Your workflow:
      - What was done
      - Files modified
      - Links to PRs/commits
-5. Update the original comment with a final summary (remove previous messages, keep only the final summary) that includes:
-   - What documentation was updated
-   - Link to the docs PR`;
+5. Final Comment Update (IMPORTANT):
+   - When you are completely done with all tasks, update the original comment ONE FINAL TIME.
+   - REMOVE the entire task list/checklist from the comment.
+   - Replace the comment body with ONLY a concise, minimal final summary.
+   - Keep it brief: just state what was attempted and what was done.
+   - Include links to any PRs/commits created.
+   - The final comment should NOT contain any checkboxes, task lists, or verbose explanations.`;
 
 export const generateContextPrompt = (context: GithubPullRequest) => {
   return `PR Title: ${context.title}
