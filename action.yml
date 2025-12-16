@@ -2,7 +2,7 @@ name: 'Augment Action'
 description: 'GitHub Action that reacts to comments with emoji'
 author: 'Augment Code'
 branding:
-  icon: 'eye'
+  icon: 'zap'
   color: 'purple'
 
 inputs:
