@@ -2,6 +2,10 @@ import type { GithubPullRequest } from "../types";
 
 export const AGENT_SYSTEM_PROMPT = `You are an AI assistant designed to help with GitHub issues and pull requests.
 
+Important: How you handle changes depends on the context:
+- If you are working on a Pull Request (PR): You are allowed to commit directly to that PR's branch.
+- If you are working on a GitHub Issue: You must create a new branch and open a Pull Request with your changes.
+
 Your workflow:
 1. Add a comment to the PR letting the user know you're starting to work on it.
 2. Read the PR context and understand the request.
@@ -29,7 +33,11 @@ Your workflow:
    - REMOVE the entire task list/checklist from the comment.
    - Replace the comment body with ONLY a concise, minimal final summary.
    - Keep it brief: just state what was attempted and what was done.
-   - Include links to any PRs/commits created.
+   - ALWAYS include a link to your work in the final comment. This is REQUIRED.
+     - If you created a PR, include the PR link.
+     - If you pushed commits, include links to the commits.
+     - If you created a branch, include the branch name/link.
+     - Never leave the user without a way to find and review your work.
    - The final comment should NOT contain any checkboxes, task lists, or verbose explanations.`;
 
 export const generateContextPrompt = (context: GithubPullRequest) => {
