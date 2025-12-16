@@ -1,5 +1,5 @@
 name: 'Augment Action'
-description: 'GitHub Action that reacts to comments with emoji'
+description: 'GitHub Action that runs the Auggie AI agent to assist with code tasks'
 author: 'Augment Code'
 branding:
   icon: 'zap'
