@@ -14,6 +14,8 @@ export type RunAuggieOptions = {
   context?: GithubPullRequest;
   /** The body of the comment that triggered this action, if triggered by a comment */
   commentBody?: string;
+  /** The ID of the comment that triggered this action, if triggered by a comment */
+  commentId?: number;
 };
 
 /**
@@ -27,6 +29,7 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
     workspaceRoot,
     context,
     commentBody,
+    commentId,
   } = options;
 
   const workspace = workspaceRoot || process.cwd();
@@ -68,6 +71,12 @@ export async function runAuggie(options: RunAuggieOptions): Promise<string> {
     if (commentBody) {
       fullPrompt = `${fullPrompt}\n\n## User Specific Request:\n${commentBody}`;
       core.info("📨 User comment included in prompt");
+    }
+
+    // Add triggering comment ID if available
+    if (commentId) {
+      fullPrompt = `${fullPrompt}\n\n## Triggering Comment ID:\n${commentId}`;
+      core.info(`📍 Triggering comment ID: ${commentId}`);
     }
 
     // Add user prompt

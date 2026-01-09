@@ -169,6 +169,7 @@ type AuggieParams = {
   augmentApiUrl: string;
   workspaceRoot: string | undefined;
   commentBody: string | undefined;
+  commentId: number | undefined;
 };
 
 /**
@@ -189,6 +190,7 @@ export function getAuggieParams(): AuggieParams {
   const augmentApiUrl = getInput("augment_api_url", true);
   const workspaceRoot = getInput("workspace_root");
   const commentBody = getCommentBodyFromEvent();
+  const commentId = getCommentIdFromEvent();
   return {
     eventName,
     prompt,
@@ -196,5 +198,6 @@ export function getAuggieParams(): AuggieParams {
     augmentApiUrl,
     workspaceRoot,
     commentBody,
+    commentId,
   }
 }
