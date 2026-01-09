@@ -19,6 +19,7 @@ async function main(): Promise<void> {
 		augmentApiUrl,
 		workspaceRoot,
 		commentBody,
+		commentId,
 	} = getAuggieParams();
 	const { owner, repo } = parseRepository();
 	const githubToken = process.env.GITHUB_TOKEN;
@@ -34,6 +35,7 @@ async function main(): Promise<void> {
 		apiUrl: augmentApiUrl,
 		workspaceRoot: workspaceRoot || undefined,
 		commentBody,
+		commentId,
 	});
 
 	core.info("✅ Auggie agent completed successfully");
